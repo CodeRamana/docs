@@ -1,1 +1,82 @@
-hello world
+select version(); //select the version of mysql server.
++-----------+
+| version() |
++-----------+
+| 8.0.44    |
++-----------+
+
+//Create a database named ecommerce.
+
+create database ecommerce; //created ecommerce database
+
+show databases; //used to show all databases
++--------------------+
+| Database           |
++--------------------+
+| ecommerce          |
+| information_schema |
+| mysql              |
+| performance_schema |
+| practice_mysql     |
+| sys                |
++--------------------+
+
+ use ecommerce; //selected created database ecommerce
+
+ select database(); //verifying wheither the database is selected
++------------+
+| database() |
++------------+
+| ecommerce  |
++------------+
+
+//Create three tables: customers, orders, and products.
+
+create table customers(id int auto_increment primary key,name varchar(150) not null,email varchar(150) not null, address varchar(255),unique(email)); // created customers table
+
+desc customers;
++---------+--------------+------+-----+---------+----------------+
+| Field   | Type         | Null | Key | Default | Extra          |
++---------+--------------+------+-----+---------+----------------+
+| id      | int          | NO   | PRI | NULL    | auto_increment |
+| name    | varchar(150) | NO   |     | NULL    |                |
+| email   | varchar(150) | NO   | UNI | NULL    |                |
+| address | varchar(255) | YES  |     | NULL    |                |
++---------+--------------+------+-----+---------+----------------+
+
+create table orders(order_id int auto_increment primary key,customer_id int not null,order_date date default (current_date()),total_amount int not null) auto_increment=100;
+
+desc orders;
++--------------+------+------+-----+-----------+-------------------+
+| Field        | Type | Null | Key | Default   | Extra             |
++--------------+------+------+-----+-----------+-------------------+
+| order_id     | int  | NO   | PRI | NULL      | auto_increment    |
+| customer_id  | int  | NO   |     | NULL      |                   |
+| order_date   | date | YES  |     | curdate() | DEFAULT_GENERATED |
+| total_amount | int  | NO   |     | NULL      |                   |
++--------------+------+------+-----+-----------+-------------------+
+
+create table products(product_id int auto_increment primary key,product_name varchar(150) not null,price int not null,description varchar(255),unique(product_name))auto_increment = 200;
+
+ desc products;
++--------------+--------------+------+-----+---------+----------------+
+| Field        | Type         | Null | Key | Default | Extra          |
++--------------+--------------+------+-----+---------+----------------+
+| product_id   | int          | NO   | PRI | NULL    | auto_increment |
+| product_name | varchar(150) | NO   | UNI | NULL    |                |
+| price        | int          | NO   |     | NULL    |                |
+| description  | varchar(255) | YES  |     | NULL    |                |
++--------------+--------------+------+-----+---------+----------------+
+
+//altered the column name id in customer table into customer_id
+alter table customers rename column id to customer_id;
+
+// added foreign key constaint to orders table
+alter table orders add constraint Fk_customer_id foreign key(customer_id) references customers (customer_id);
+
+// Insert some sample data into the tables.
+
+
+
+
+
