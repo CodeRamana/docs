@@ -7,9 +7,9 @@ select version(); //select the version of mysql server.
 
 //Create a database named ecommerce.
 
-create database ecommerce; //created ecommerce database
+create database ecommerce; // query to create ecommerce database
 
-show databases; //used to show all databases
+show databases; // used to show all databases
 +--------------------+
 | Database           |
 +--------------------+
@@ -21,7 +21,7 @@ show databases; //used to show all databases
 | sys                |
 +--------------------+
 
- use ecommerce; //selected created database ecommerce
+ use ecommerce; // selected created database ecommerce
 
  select database(); //verifying wheither the database is selected
 +------------+
@@ -34,7 +34,9 @@ show databases; //used to show all databases
 
 create table customers(id int auto_increment primary key,name varchar(150) not null,email varchar(150) not null, address varchar(255),unique(email)); // created customers table
 
-desc customers;
+//created table customers the column and required constraints for above table.
+
+desc customers; // it describles the created table structure like column and constraints etc.
 +---------+--------------+------+-----+---------+----------------+
 | Field   | Type         | Null | Key | Default | Extra          |
 +---------+--------------+------+-----+---------+----------------+
@@ -45,6 +47,8 @@ desc customers;
 +---------+--------------+------+-----+---------+----------------+
 
 create table orders(order_id int auto_increment primary key,customer_id int not null,order_date date default (current_date()),total_amount int not null) auto_increment=100;
+
+//created table orders the column and required constraints for above table and forced auto_increment to start from 100.
 
 desc orders;
 +--------------+------+------+-----+-----------+-------------------+
@@ -58,7 +62,9 @@ desc orders;
 
 create table products(product_id int auto_increment primary key,product_name varchar(150) not null,price int not null,description varchar(255),unique(product_name))auto_increment = 200;
 
- desc products;
+//created table products the column and required constraints for above table and forced auto_increment to start from 100.
+ 
+desc products;
 +--------------+--------------+------+-----+---------+----------------+
 | Field        | Type         | Null | Key | Default | Extra          |
 +--------------+--------------+------+-----+---------+----------------+
@@ -114,6 +120,8 @@ select * from products;
  foreign key (order_id) references orders(order_id)
  );
 
+// created new table order_items to normalize the orders table.
+
  desc order_items;
 
 +--------------+------+------+-----+---------+----------------+
@@ -124,6 +132,8 @@ select * from products;
 | quantity     | int  | NO   |     | NULL    |                |
 | order_id     | int  | NO   | MUL | NULL    |                |
 +--------------+------+------+-----+---------+----------------+
+
+//listed orders data;
 
 select * from orders; 
 +----------+-------------+------------+--------------+
@@ -139,6 +149,7 @@ select * from orders;
 // Retrieve all customers who have placed an order in the last 30 days.
 select c.customer_id,c.name,c.email,c.address from customers c right join (select * from orders where order_date between DATE_SUB(current_date(),INTERVAL 30 day) and current_date()) r using (customer_id);
 
+// first selected all the orders between current_date() - 30 days and current_date() and joined the dervied table with the customers table and retrived the customers details those who have ordered last 30days
 +-------------+---------------+-------------------+--------------+
 | customer_id | name          | email             | address      |
 +-------------+---------------+-------------------+--------------+
@@ -149,6 +160,8 @@ select c.customer_id,c.name,c.email,c.address from customers c right join (selec
 
 // Get the total amount of all orders placed by each customer.
 select c.customer_id,c.name,r.total as total_amount from customers c right join (select sum(total_amount) as total,customer_id from orders group by customer_id) r using (customer_id);
+
+//we have grouped by customer_id in orders table to sum the total_amount on orders given by individual customers and joined the result with customers table result provided.
 
 +-------------+---------------+--------------+
 | customer_id | name          | total_amount |
@@ -162,6 +175,8 @@ select c.customer_id,c.name,r.total as total_amount from customers c right join 
 //Update the price of Product C to 45.00.
 update products set price = 45.00 where product_id = 202;
 
+//changed the price of product C by fetching the record by providing the id and updated price as 45.00
+
 +------------+--------------+-------+------------------------+
 | product_id | product_name | price | description            |
 +------------+--------------+-------+------------------------+
@@ -174,6 +189,8 @@ update products set price = 45.00 where product_id = 202;
 //Add a new column discount to the products table.
 alter table products
 add column discount int;
+
+//added new column named discount using alter query
 
 desc products;
 
@@ -191,6 +208,8 @@ desc products;
 //Retrieve the top 3 products with the highest price.
 select * from products order by price desc limit 3;
 
+//made products to arrange in descending order based on price and retrived first 3 records
+
 +------------+--------------+-------+------------------------+----------+
 | product_id | product_name | price | description            | discount |
 +------------+--------------+-------+------------------------+----------+
@@ -201,6 +220,8 @@ select * from products order by price desc limit 3;
 
 //Get the names of customers who have ordered Product A.
 select c.customer_id,c.name from order_items i left join orders o using (order_id) left join customers c using (customer_id) where i.product_id = 200;
+
+joined order_items,orders and customers table retirived the record by product_id = 200 (Product A)
 +-------------+---------------+
 | customer_id | name          |
 +-------------+---------------+
@@ -210,6 +231,8 @@ select c.customer_id,c.name from order_items i left join orders o using (order_i
 
 //Join the orders and customers tables to retrieve the customer's name and order date for each order. 
  select c.name,o.order_date from orders o left join customers c using (customer_id);
+
+//joined the orders and customers table by customer_id and retrived customer name and order date.
 
 +---------------+------------+
 | name          | order_date |
@@ -224,6 +247,8 @@ select c.customer_id,c.name from order_items i left join orders o using (order_i
 //Retrieve the orders with a total amount greater than 150.00.
 
 select * from orders where total_amount > 150.00;
+
+// applyed condition that total amount of orders is greater than 150.00 if true retrive the details
 
 Empty set (0.0019 sec)
 
@@ -240,6 +265,7 @@ select * from orders;
 
 //Retrieve the average total of all orders.
 
+//using aggregate function named avg(total_amount) founded average of total amount 
 select avg(total_amount) from orders;
 +-------------------+
 | avg(total_amount) |
