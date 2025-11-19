@@ -76,7 +76,175 @@ alter table orders add constraint Fk_customer_id foreign key(customer_id) refere
 
 // Insert some sample data into the tables.
 
+insert into customers(name,email,address)
+values('Alice Johnson','alice@yopmail.com','123 Maple st'),('Bob Smith','bob@example.com','456 elm st'),('Carol White','carol@gmail.com','789 Oak st'),('David Brown','david@gmail.com','135 Pine st');
+
+select * from customers;
+
++-------------+---------------+-------------------+--------------+
+| customer_id | name          | email             | address      |
++-------------+---------------+-------------------+--------------+
+|           1 | Alice Johnson | alice@yopmail.com | 123 Maple st |
+|           2 | Bob Smith     | bob@example.com   | 456 elm st   |
+|           3 | Carol White   | carol@gmail.com   | 789 Oak st   |
+|           4 | David Brown   | david@gmail.com   | 135 Pine st  |
++-------------+---------------+-------------------+--------------+
+
+insert into products(product_name,price,description)
+values('Product A',30.00,'High Quality product A'),('Product B',20.00,'Durable product B'),('Product C',50.00,'Premium product C'),('Product D',15.00,'Affordable Product D');
+
+select * from products;
++------------+--------------+-------+------------------------+
+| product_id | product_name | price | description            |
++------------+--------------+-------+------------------------+
+|        200 | Product A    | 30.00 | High Quality product A |
+|        201 | Product B    | 20.00 | Durable product B      |
+|        202 | Product C    | 50.00 | Premium product C      |
+|        203 | Product D    | 15.00 | Affordable Product D   |
++------------+--------------+-------+------------------------+
+
+//Normalize the database by creating a separate table for order items and updating the orders table to reference the order_items table.
+
+ create table order_items(
+ orderItem_id int auto_increment primary key,
+ product_id int not null,
+ quantity int not null,
+ order_id int not null,
+ foreign key (Product_id) references products(product_id),
+ foreign key (order_id) references orders(order_id)
+ );
+
+ desc order_items;
+
++--------------+------+------+-----+---------+----------------+
+| Field        | Type | Null | Key | Default | Extra          |
++--------------+------+------+-----+---------+----------------+
+| orderItem_id | int  | NO   | PRI | NULL    | auto_increment |
+| product_id   | int  | NO   | MUL | NULL    |                |
+| quantity     | int  | NO   |     | NULL    |                |
+| order_id     | int  | NO   | MUL | NULL    |                |
++--------------+------+------+-----+---------+----------------+
+
+select * from orders; 
++----------+-------------+------------+--------------+
+| order_id | customer_id | order_date | total_amount |
++----------+-------------+------------+--------------+
+|      100 |           1 | 2025-11-13 |           80 |
+|      101 |           1 | 2025-10-04 |           50 |
+|      102 |           2 | 2025-11-08 |          130 |
+|      103 |           3 | 2025-11-16 |           75 |
+|      104 |           4 | 2025-09-16 |           80 |
++----------+-------------+------------+--------------+
+
+// Retrieve all customers who have placed an order in the last 30 days.
+select c.customer_id,c.name,c.email,c.address from customers c right join (select * from orders where order_date between DATE_SUB(current_date(),INTERVAL 30 day) and current_date()) r using (customer_id);
+
++-------------+---------------+-------------------+--------------+
+| customer_id | name          | email             | address      |
++-------------+---------------+-------------------+--------------+
+|           1 | Alice Johnson | alice@yopmail.com | 123 Maple st |
+|           2 | Bob Smith     | bob@example.com   | 456 elm st   |
+|           3 | Carol White   | carol@gmail.com   | 789 Oak st   |
++-------------+---------------+-------------------+--------------+
+
+// Get the total amount of all orders placed by each customer.
+select c.customer_id,c.name,r.total as total_amount from customers c right join (select sum(total_amount) as total,customer_id from orders group by customer_id) r using (customer_id);
+
++-------------+---------------+--------------+
+| customer_id | name          | total_amount |
++-------------+---------------+--------------+
+|           1 | Alice Johnson |          130 |
+|           2 | Bob Smith     |          130 |
+|           3 | Carol White   |           75 |
+|           4 | David Brown   |           80 |
++-------------+---------------+--------------+
+
+//Update the price of Product C to 45.00.
+update products set price = 45.00 where product_id = 202;
+
++------------+--------------+-------+------------------------+
+| product_id | product_name | price | description            |
++------------+--------------+-------+------------------------+
+|        200 | Product A    | 30.00 | High Quality product A |
+|        201 | Product B    | 20.00 | Durable product B      |
+|        202 | Product C    | 45.00 | Premium product C      |
+|        203 | Product D    | 15.00 | Affordable Product D   |
++------------+--------------+-------+------------------------+
+
+//Add a new column discount to the products table.
+alter table products
+add column discount int;
+
+desc products;
+
++--------------+---------------+------+-----+---------+----------------+
+| Field        | Type          | Null | Key | Default | Extra          |
++--------------+---------------+------+-----+---------+----------------+
+| product_id   | int           | NO   | PRI | NULL    | auto_increment |
+| product_name | varchar(150)  | NO   | UNI | NULL    |                |
+| price        | decimal(10,2) | NO   |     | NULL    |                |
+| description  | varchar(255)  | YES  |     | NULL    |                |
+| discount     | int           | YES  |     | NULL    |                |
++--------------+---------------+------+-----+---------+----------------+
 
 
+//Retrieve the top 3 products with the highest price.
+select * from products order by price desc limit 3;
+
++------------+--------------+-------+------------------------+----------+
+| product_id | product_name | price | description            | discount |
++------------+--------------+-------+------------------------+----------+
+|        202 | Product C    | 45.00 | Premium product C      |     NULL |
+|        200 | Product A    | 30.00 | High Quality product A |     NULL |
+|        201 | Product B    | 20.00 | Durable product B      |     NULL |
++------------+--------------+-------+------------------------+----------+
+
+//Get the names of customers who have ordered Product A.
+select c.customer_id,c.name from order_items i left join orders o using (order_id) left join customers c using (customer_id) where i.product_id = 200;
++-------------+---------------+
+| customer_id | name          |
++-------------+---------------+
+|           1 | Alice Johnson |
+|           3 | Carol White   |
++-------------+---------------+
+
+//Join the orders and customers tables to retrieve the customer's name and order date for each order. 
+ select c.name,o.order_date from orders o left join customers c using (customer_id);
+
++---------------+------------+
+| name          | order_date |
++---------------+------------+
+| Alice Johnson | 2025-11-13 |
+| Alice Johnson | 2025-10-04 |
+| Bob Smith     | 2025-11-08 |
+| Carol White   | 2025-11-16 |
+| David Brown   | 2025-09-16 |
++---------------+------------+
+
+//Retrieve the orders with a total amount greater than 150.00.
+
+select * from orders where total_amount > 150.00;
+
+Empty set (0.0019 sec)
+
+select * from orders;
++----------+-------------+------------+--------------+
+| order_id | customer_id | order_date | total_amount |
++----------+-------------+------------+--------------+
+|      100 |           1 | 2025-11-13 |           80 |
+|      101 |           1 | 2025-10-04 |           50 |
+|      102 |           2 | 2025-11-08 |          130 |
+|      103 |           3 | 2025-11-16 |           75 |
+|      104 |           4 | 2025-09-16 |           80 |
++----------+-------------+------------+--------------+
+
+//Retrieve the average total of all orders.
+
+select avg(total_amount) from orders;
++-------------------+
+| avg(total_amount) |
++-------------------+
+|           83.0000 |
++-------------------+
 
 
